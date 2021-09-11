@@ -22,7 +22,6 @@ def get_sunrise_sunset_data(city, a_month: int, write_monthly_files=False) -> di
     current_year = now.year
     current_month = now.month
     zero_padded_month = get_padded_month(a_month)
-    print(f"month {a_month}")
     with CustomChrome(incognito=False) as sun_driver:
         if a_month < current_month:
             current_year += 1
@@ -60,7 +59,7 @@ def get_sunrise_sunset_data(city, a_month: int, write_monthly_files=False) -> di
                     'MillionMiles': each.find_elements_by_css_selector(f'.tr.sep')[-1].text,
                     'Time': raw_row[10].text
                 }
-                sun_table[get_padded_day(idx+1)] = {
+                sun_table[idx+1] = {
                     'SolarNoon': solar_noon_table,
                     'Sunrise/Sunset': sunriseset_table,
                     'Daylength': daylength_table,
