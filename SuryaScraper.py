@@ -94,7 +94,7 @@ def run_with_pool():
     my_inputs = [(details.city, x) for x in range(1,13)]
     with Pool() as executor:
         res = list(executor.starmap(get_sunrise_sunset_data, my_inputs))
-    year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip([2,3,6], res)}
+    year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(my_inputs, res)}
     with open(Path.cwd().joinpath(f'Confidential/Sundata2.json'), 'w') as file:
         json.dump(year_dict, file, indent=4)
 
