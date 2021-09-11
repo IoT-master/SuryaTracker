@@ -68,8 +68,7 @@ def get_sunrise_sunset_data(city, a_month: int, write_monthly_files=False) -> di
                     'CivilTwilight': civtw_table,
                 }
         if write_monthly_files:
-            with open(Path.cwd().joinpath(f'Confidential/Sundata-{zero_padded_month}.json'), 'w') as file:
-                json.dump(sun_table, file, indent=4)
+            Path.cwd().joinpath(f'Confidential/Sundata-{zero_padded_month}.json').write_text(json.dumps(sun_table, indent=4))
         return sun_table
 
 def run_with_pool_executor():
@@ -78,8 +77,7 @@ def run_with_pool_executor():
     with ProcessPoolExecutor() as executor:
         res = list(executor.map(partial_sun, var))
     year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
-    with open(Path.cwd().joinpath(f'Confidential/Sundata.json'), 'w') as file:
-        json.dump(year_dict, file, indent=4)
+    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))
 
 def run_with_thread_executor():
     partial_sun = functools.partial(get_sunrise_sunset_data, details.city)
@@ -87,24 +85,21 @@ def run_with_thread_executor():
     with ThreadPoolExecutor() as executor:
         res = list(executor.map(partial_sun, var))
     year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
-    with open(Path.cwd().joinpath(f'Confidential/Sundata2.json'), 'w') as file:
-        json.dump(year_dict, file, indent=4)        
+    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))     
 
 def run_with_pool():
     my_inputs = [(details.city, x) for x in range(1,13)]
     with Pool() as executor:
         res = list(executor.starmap(get_sunrise_sunset_data, my_inputs))
     year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(my_inputs, res)}
-    with open(Path.cwd().joinpath(f'Confidential/Sundata2.json'), 'w') as file:
-        json.dump(year_dict, file, indent=4)
+    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))     
 
 def run_with_pool2():
     var = range(1,13)
     with ProcessPoolExecutor() as executor:
         res = list(executor.map(get_sunrise_sunset_data, repeat(details.city), var))
     year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
-    with open(Path.cwd().joinpath(f'Confidential/Sundata2.json'), 'w') as file:
-        json.dump(year_dict, file, indent=4)
+    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))     
 
 if __name__ == '__main__':
     run_with_pool_executor()
