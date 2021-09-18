@@ -8,8 +8,10 @@ from multiprocessing import Pool
 from pathlib import Path
 from itertools import repeat
 
+
 def get_padded_month(a_month):
     return datetime.strftime(datetime.strptime(str(a_month), '%m'), '%m')
+
 
 def get_padded_day(a_day):
     return datetime.strftime(datetime.strptime(str(a_day), '%d'), '%d')
@@ -28,11 +30,14 @@ def get_sunrise_sunset_data(city, a_month: int, write_monthly_files=False) -> di
         url = f'https://www.timeanddate.com/sun/usa/{city.lower()}?month={a_month}&year={current_year}'
         sun_driver.browser.get(url)
         if a_month == current_month:
-            sun_driver.scroll_and_moves_mouse_to(sun_driver.browser.find_element_by_css_selector('.selected'))
-            sun_driver.browser.find_element_by_css_selector('.selected').click()
-        sun_driver.browser.find_elements_by_css_selector('tbody tr')
+            sun_driver.scroll_and_moves_mouse_to(
+                sun_driver.browser.find_element_by_css_selector('.selected'))
+            sun_driver.browser.find_element_by_css_selector(
+                '.selected').click()
+        elems_with_no_dls = list(filter(lambda x: len(x.find_elements_by_css_selector(
+            '.hl-g')) == 0, sun_driver.browser.find_elements_by_css_selector('tbody tr')))
         sun_table = {}
-        for idx, each in enumerate(sun_driver.browser.find_elements_by_css_selector('tbody tr')[7:]):        
+        for idx, each in enumerate(elems_with_no_dls[7:]):
             raw_row = each.find_elements_by_css_selector('.c')
             if raw_row:
                 sunriseset_table = {
@@ -54,7 +59,7 @@ def get_sunrise_sunset_data(city, a_month: int, write_monthly_files=False) -> di
                 civtw_table = {
                     "Start": raw_row[8].text,
                     "End": raw_row[9].text
-                }            
+                }
                 solar_noon_table = {
                     'MillionMiles': each.find_elements_by_css_selector(f'.tr.sep')[-1].text,
                     'Time': raw_row[10].text
@@ -68,42 +73,49 @@ def get_sunrise_sunset_data(city, a_month: int, write_monthly_files=False) -> di
                     'CivilTwilight': civtw_table,
                 }
         if write_monthly_files:
-            Path.cwd().joinpath(f'Confidential/Sundata-{zero_padded_month}.json').write_text(json.dumps(sun_table, indent=4))
+            Path.cwd().joinpath(
+                f'Confidential/Sundata-{zero_padded_month}.json').write_text(json.dumps(sun_table, indent=4))
         return sun_table
+
 
 def run_with_pool_executor():
     partial_sun = functools.partial(get_sunrise_sunset_data, details.city)
-    var = range(1,13)
+    var = range(1, 13)
     with ProcessPoolExecutor() as executor:
         res = list(executor.map(partial_sun, var))
-    year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
+    year_dict = {get_padded_month(
+        each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
     Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))
+
 
 def run_with_thread_executor():
     partial_sun = functools.partial(get_sunrise_sunset_data, details.city)
-    var = range(1,13)
+    var = range(1, 13)
     with ThreadPoolExecutor() as executor:
         res = list(executor.map(partial_sun, var))
-    year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
-    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))     
+    year_dict = {get_padded_month(
+        each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
+    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))
+
 
 def run_with_pool():
-    my_inputs = [(details.city, x) for x in range(1,13)]
+    my_inputs = [(details.city, x) for x in range(1, 13)]
     with Pool() as executor:
         res = list(executor.starmap(get_sunrise_sunset_data, my_inputs))
-    year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(my_inputs, res)}
-    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))     
+    year_dict = {get_padded_month(
+        each_month): each_month_sun_table for each_month, each_month_sun_table in zip(my_inputs, res)}
+    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))
+
 
 def run_with_pool2():
-    var = range(1,13)
+    var = range(1, 13)
     with ProcessPoolExecutor() as executor:
-        res = list(executor.map(get_sunrise_sunset_data, repeat(details.city), var))
-    year_dict = {get_padded_month(each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
-    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))     
+        res = list(executor.map(get_sunrise_sunset_data,
+                   repeat(details.city), var))
+    year_dict = {get_padded_month(
+        each_month): each_month_sun_table for each_month, each_month_sun_table in zip(var, res)}
+    Path.cwd().joinpath(f'Confidential/Sundata.json').write_text(json.dumps(year_dict, indent=4))
+
 
 if __name__ == '__main__':
     run_with_pool_executor()
-
-
-
-
